@@ -4,6 +4,8 @@ inputs:
   action:
     description: 'Desired action to do on a Card'
     required: true
+  release_version:
+    description: 'Used as trello card title'
 runs:
   using: 'node12'
   main: 'dist/index.js'
