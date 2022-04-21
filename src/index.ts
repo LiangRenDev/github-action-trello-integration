@@ -17,6 +17,7 @@ import { cardHasPrLinked, isIssueAlreadyLinkedTo, validateListExistsOnBoard } fr
 
 const verbose: string | boolean = process.env.TRELLO_ACTION_VERBOSE || false;
 const action = core.getInput('action');
+const releaseVersion = core.getInput('release_version');
 
 /**
  * GW webhook payload.
@@ -275,6 +276,10 @@ function pullRequestEventMoveCard() {
 }
 
 function pullRequestMergeCreateCard() {
+  if (!releaseVersion) {
+    throw Error('Action is not set.');
+  }
+
   const pullRequest = ghPayload.pull_request;
   const pullRequestBody = pullRequest?.body;
   const pullRequestNumber = pullRequest?.number;
@@ -319,7 +324,7 @@ function pullRequestMergeCreateCard() {
   Promise.all([getLabels, getMembers]).then(() => {
     const params = {
       number: pullRequestNumber,
-      title: pullRequestTitle,
+      title: releaseVersion,
       description: pullRequestBody,
       sourceUrl: pullRequestUrl,
       memberIds: memberIds.join(),
