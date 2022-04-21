@@ -38,7 +38,9 @@ try {
     case 'pull_request_event_move_card':
       pullRequestEventMoveCard();
       break;
-
+    case 'pull_request_merge_create_card':
+      pullRequestMergeCreateCard();
+      break;
     default:
       throw Error('Action is not supported: ' + action);
   }
@@ -270,4 +272,81 @@ function pullRequestEventMoveCard() {
           });
       });
     });
+}
+
+function pullRequestMergeCreateCard() {
+  const pullRequest = ghPayload.pull_request;
+  const pullRequestBody = pullRequest?.body;
+  const pullRequestNumber = pullRequest?.number;
+  const pullRequestTitle = pullRequest?.title;
+  const pullRequestUrl = pullRequest?.html_url;
+  const pullRequestAssigneeNicks = pullRequest?.assignees.map((assignee: any) => assignee.login);
+  const pullRequestLabelNames = pullRequest?.labels.map((label: any) => label.name);
+  const listId: string = process.env.TRELLO_LIST_ID as string;
+  const trelloLabelIds: string[] = [];
+  const memberIds: string[] = [];
+  if (verbose) {
+    console.log(JSON.stringify(repository, undefined, 2));
+  }
+
+  if (!validateListExistsOnBoard(listId)) {
+    core.setFailed('TRELLO_LIST_ID is not valid.');
+    return;
+  }
+
+  const getLabels = getLabelsOfBoard().then((trelloLabels) => {
+    if (typeof trelloLabels === 'string') {
+      core.setFailed(trelloLabels);
+      return;
+    }
+    const intersection = trelloLabels.filter((label) => pullRequestLabelNames.includes(label.name));
+    const matchingLabelIds = intersection.map((trelloLabel) => trelloLabel.id);
+    trelloLabelIds.push(...matchingLabelIds);
+  });
+
+  const getMembers = getMembersOfBoard().then((trelloMembers) => {
+    if (typeof trelloMembers === 'string') {
+      core.setFailed(trelloMembers);
+      return;
+    }
+    const membersOnBothSides = trelloMembers.filter((member) =>
+      pullRequestAssigneeNicks.includes(member.username),
+    );
+    const matchingMemberIds = membersOnBothSides.map((trelloMember) => trelloMember.id);
+    memberIds.push(...matchingMemberIds);
+  });
+
+  Promise.all([getLabels, getMembers]).then(() => {
+    const params = {
+      number: pullRequestNumber,
+      title: pullRequestTitle,
+      description: pullRequestBody,
+      sourceUrl: pullRequestUrl,
+      memberIds: memberIds.join(),
+      labelIds: trelloLabelIds.join(),
+    } as unknown as TrelloCardRequestParams;
+
+    if (verbose) {
+      console.log(
+        `Creating new card to ${listId} from issue  "[#${pullRequestNumber}] ${pullRequestTitle}"`,
+      );
+    }
+    // No need to create the attachment for this repository separately since the createCard()
+    // adds the backlink to the created issue, see
+    // params.sourceUrl property.
+    createCard(listId, params).then((createdCard) => {
+      if (typeof createdCard === 'string') {
+        core.setFailed(createdCard);
+        return;
+      }
+
+      if (verbose) {
+        console.log(
+          `Card created: "[#${pullRequestNumber}] ${pullRequestTitle}], url ${createdCard.shortUrl}"`,
+        );
+      }
+
+      const markdownLink: string = `Trello card: [${createdCard.name}](${createdCard.shortUrl})`;
+    });
+  });
 }

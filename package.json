@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write src/",
-    "lint": "eslint --ignore-path .gitignore --ext '.js, .ts, .jsx, .tsx .json .eta' src/",
+    "lint": "eslint --ignore-path .gitignore --ext \".js, .ts, .jsx, .tsx .json .eta\" src/",
     "lint:fix": "npm run lint --  --fix ",
     "build": "npm run tsc && ncc build build-tsc/index.js -o ./dist --license licenses.txt",
     "tsc": "tsc",
