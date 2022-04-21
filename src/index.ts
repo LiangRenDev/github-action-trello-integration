@@ -277,7 +277,7 @@ function pullRequestEventMoveCard() {
 
 function pullRequestMergeCreateCard() {
   if (!releaseVersion) {
-    throw Error('Action is not set.');
+    throw Error('Release version is not set.');
   }
 
   const pullRequest = ghPayload.pull_request;
