@@ -292,11 +292,10 @@ function pullRequestMergeCreateCard() {
   const trelloLabelIds: string[] = [];
   const memberIds: string[] = [];
 
-  core.setOutput('release version print', `Release version is ${releaseVersion}`);
-  core.setOutput('title print', `Pull request title is ${releaseVersion}`);
-
+  console.log(`Release version is ${releaseVersion}`);
+  console.log(`Pull request title is ${pullRequest}`);
   if (verbose) {
-    console.log(JSON.stringify(repository, undefined, 2));
+    console.log(JSON.stringify(pullRequest, undefined, 2));
   }
 
   if (!validateListExistsOnBoard(listId)) {
