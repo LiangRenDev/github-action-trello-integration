@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { debug } from 'console';
+import { title } from 'process';
 import { addIssueComment } from './api-github';
 
 import {
@@ -290,6 +291,10 @@ function pullRequestMergeCreateCard() {
   const listId: string = process.env.TRELLO_LIST_ID as string;
   const trelloLabelIds: string[] = [];
   const memberIds: string[] = [];
+
+  core.setOutput('release version print', `Release version is ${releaseVersion}`);
+  core.setOutput('title print', `Pull request title is ${releaseVersion}`);
+
   if (verbose) {
     console.log(JSON.stringify(repository, undefined, 2));
   }
