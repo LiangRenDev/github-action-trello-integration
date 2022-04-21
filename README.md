@@ -108,6 +108,52 @@ Optional env variables include:
 - `TRELLO_API_DEBUG` expose Trello API call resposes in action log.
 - `GITHUB_API_DEBUG` expose Github API call data in action log.
 
+### Open Cards on pull request closed and merged to master in Github
+
+Merged master branch in Github can be reflected in Trello with action `pull_request_merge_create_card`. Example:
+
+```yaml
+name: Create Trello card on pull request merged
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  create_trello_card_job:
+    runs-on: ubuntu-latest
+    name: Create Trello Card
+    steps:
+      - name: Call trello-github-actions
+        uses: LiangRenDev/github-action-trello-integration@v1.2.0
+        with:
+          action: pull_request_merge_create_card
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_API_TOKEN: ${{ secrets.TRELLO_API_TOKEN }}
+          # TRELLO_BOARD_ID must match a board. GH repo should connect
+          # to exactly one board, but Trello board may connect to multiple
+          # GH repositories.
+          TRELLO_BOARD_ID: ${{secrets.TRELLO_BOARD_ID}}
+          # Backlog list ID
+          TRELLO_LIST_ID: ${{secrets.TRELLO_LIST_ID}}
+```
+
+Required env variables include:
+
+- `GITHUB_TOKEN` Github secret. This is necessary so the action can put a link to Trello Card to the issue (as a comment).
+- `TRELLO_API_KEY` Trello API key. Use it via Github repository or organisation secrets. Do not store in your repository code.
+- `TRELLO_API_TOKEN` Trello API token. Use it via Github repository or organisation secrets. Do not store in your repository code.
+- `TRELLO_BOARD_ID` The id of your Trello board.
+- `TRELLO_LIST_ID` The id of your Trello list (column) where you wish to place the new card. Using ID allows you to rename the boards lists without breaking Github Actions. The list must not be archived.
+
+Optional env variables include:
+
+- `TRELLO_ACTION_VERBOSE` to make action logs slightly more verbose.
+- `TRELLO_API_DEBUG` expose Trello API call resposes in action log.
+- `GITHUB_API_DEBUG` expose Github API call data in action log.
+
 ## API key and token
 
 Actions authenticate using API key and token. Your repository must have secrets `TRELLO_API_KEY` and `TRELLO_API_TOKEN` set up.
