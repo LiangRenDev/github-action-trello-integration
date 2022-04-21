@@ -283,7 +283,7 @@ function pullRequestMergeCreateCard() {
   const pullRequest = ghPayload.pull_request;
   const pullRequestBody = pullRequest?.body;
   const pullRequestNumber = pullRequest?.number;
-  const pullRequestTitle = pullRequest?.title;
+  const pullRequestTitle = releaseVersion;
   const pullRequestUrl = pullRequest?.html_url;
   const pullRequestAssigneeNicks = pullRequest?.assignees.map((assignee: any) => assignee.login);
   const pullRequestLabelNames = pullRequest?.labels.map((label: any) => label.name);
