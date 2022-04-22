@@ -433,6 +433,7 @@ const api_trello_1 = __nccwpck_require__(3737);
 const utils_1 = __nccwpck_require__(7216);
 const verbose = process.env.TRELLO_ACTION_VERBOSE || false;
 const action = core.getInput('action');
+const releaseVersion = core.getInput('release_version');
 /**
  * GW webhook payload.
  *
@@ -659,18 +660,23 @@ function pullRequestEventMoveCard() {
     });
 }
 function pullRequestMergeCreateCard() {
+    if (!releaseVersion) {
+        throw Error('Release version is not set.');
+    }
     const pullRequest = ghPayload.pull_request;
     const pullRequestBody = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.body;
     const pullRequestNumber = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.number;
-    const pullRequestTitle = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.title;
+    const pullRequestTitle = releaseVersion;
     const pullRequestUrl = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.html_url;
     const pullRequestAssigneeNicks = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.assignees.map((assignee) => assignee.login);
     const pullRequestLabelNames = pullRequest === null || pullRequest === void 0 ? void 0 : pullRequest.labels.map((label) => label.name);
     const listId = process.env.TRELLO_LIST_ID;
     const trelloLabelIds = [];
     const memberIds = [];
+    console.log(`Release version is ${releaseVersion}`);
+    console.log(`Pull request title is ${pullRequest}`);
     if (verbose) {
-        console.log(JSON.stringify(repository, undefined, 2));
+        console.log(JSON.stringify(pullRequest, undefined, 2));
     }
     if (!(0, utils_1.validateListExistsOnBoard)(listId)) {
         core.setFailed('TRELLO_LIST_ID is not valid.');
@@ -697,7 +703,7 @@ function pullRequestMergeCreateCard() {
     Promise.all([getLabels, getMembers]).then(() => {
         const params = {
             number: pullRequestNumber,
-            title: pullRequestTitle,
+            title: releaseVersion,
             description: pullRequestBody,
             sourceUrl: pullRequestUrl,
             memberIds: memberIds.join(),
